@@ -1,0 +1,184 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --folha: #1a5c3a;
+    --folha-light: #2d8a58;
+    --ipe: #e8b84a;
+    --laterita: #b54a2a;
+    --rio: #2a6b7c;
+    --tinta: #1c2b22;
+    --sol: #f3f6f1;
+    /* Altura do BottomNav (ul), sem safe-area */
+    --cidadao-nav-h: 4.25rem;
+    /* Densidade — cidadão (mídia) vs gestão (compacta) */
+    --space-section: 1.5rem;
+    --space-card: 1rem;
+    --type-title: 1.5rem;
+    --type-body: 0.875rem;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #f3f6f1;
+    color: #1c2b22;
+    @apply bg-sol text-tinta font-sans antialiased;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--ipe) 55%, transparent);
+    color: var(--tinta);
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-folha/40 ring-offset-2 ring-offset-sol;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .hero-map-veil-x {
+    background: linear-gradient(
+      90deg,
+      var(--sol) 0%,
+      color-mix(in srgb, var(--sol) 92%, transparent) 42%,
+      color-mix(in srgb, var(--sol) 20%, transparent) 100%
+    );
+  }
+
+  .hero-map-veil-y {
+    background: linear-gradient(
+      to top,
+      var(--sol) 0%,
+      transparent 48%,
+      color-mix(in srgb, var(--sol) 30%, transparent) 100%
+    );
+  }
+
+  .landing-panel-enter {
+    animation: landing-panel-in 0.55s ease-out both;
+  }
+
+  .vu-enter {
+    animation: vu-fade-up 0.4s ease-out both;
+  }
+
+  .vu-filter-in {
+    animation: vu-fade-up 0.25s ease-out both;
+  }
+
+  .vu-sheet {
+    animation: vu-sheet-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .vu-sheet-backdrop {
+    animation: vu-fade 0.2s ease-out both;
+  }
+
+  .density-cidadao {
+    --space-section: 1.5rem;
+    --space-card: 1rem;
+    --type-title: 1.5rem;
+  }
+
+  .density-gestao {
+    --space-section: 1.25rem;
+    --space-card: 0.875rem;
+    --type-title: 1.375rem;
+  }
+
+  @keyframes landing-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes vu-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes vu-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes vu-sheet-up {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* MapLibre overrides — sem @apply !important (quebra o PostCSS/Tailwind) */
+.maplibregl-popup-content {
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, #a8c9b5 40%, transparent);
+  background: #fff;
+  padding: 0.75rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.875rem;
+  box-shadow: 0 8px 30px rgba(28, 43, 34, 0.08);
+}
+
+.maplibregl-ctrl-group {
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, #a8c9b5 50%, transparent);
+  box-shadow: 0 8px 30px rgba(28, 43, 34, 0.08);
+}
+
+.maplibregl-ctrl-attrib {
+  font-size: 10px;
+}
+
+@media print {
+  nav,
+  aside,
+  .md\:hidden,
+  button {
+    display: none !important;
+  }
+}

@@ -42,11 +42,11 @@ export function ProgressStepper({
                   done ? 'bg-folha' : 'bg-folha-muted/40'
                 )}
               />
-              {!compact && (
+                  {!compact && (
                 <span
                   className={cn(
-                    'truncate text-[10px] font-medium leading-tight',
-                    done ? 'text-folha' : 'text-tinta-faint'
+                    'truncate text-xs font-medium leading-tight',
+                    done ? 'text-folha' : 'text-tinta-muted'
                   )}
                 >
                   {step.label}
@@ -57,9 +57,9 @@ export function ProgressStepper({
         })}
       </div>
       {compact && current && (
-        <p className="mt-1.5 text-[11px] font-medium text-folha">
+        <p className="mt-1.5 text-xs font-medium text-folha">
           {current.label}
-          <span className="text-tinta-faint">
+          <span className="text-tinta-muted">
             {' '}
             · {currentIndex + 1}/{steps.length}
           </span>

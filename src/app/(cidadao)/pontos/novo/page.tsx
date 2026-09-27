@@ -63,11 +63,25 @@ export default function NovoPontoPage() {
   }
 
   async function onSubmit() {
+    if (!coords) return;
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 400));
+    const { addLocalPonto } = await import('@/lib/localPontos');
+    const ponto = addLocalPonto({
+      titulo: titulo.trim(),
+      descricao: descricao.trim() || 'Ponto mapeado pelo cidadão (demo local).',
+      local: `${bairro} — GPS`,
+      bairro,
+      tipo,
+      urgencia: tipo === 'terreno_baldio' ? 82 : 68,
+      lng: coords.lng,
+      lat: coords.lat,
+      foto: preview || undefined,
+      necessidades: ['Análise SEMAM'],
+    });
     setSaving(false);
-    toast('Ponto registrado (demo local)', 'folha');
-    router.push('/mapear');
+    toast('Ponto no mapa — aparece neste aparelho', 'folha');
+    router.push(`/mapear?ponto=${encodeURIComponent(ponto.id)}`);
   }
 
   function canNext() {

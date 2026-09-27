@@ -9,6 +9,12 @@ import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/components/providers/AuthProvider';
 
+/** Volta para onde a pessoa estava (?next=), só para caminhos internos */
+function proximo(fallback: string) {
+  const next = new URLSearchParams(window.location.search).get('next');
+  return next && next.startsWith('/') && !next.startsWith('//') ? next : fallback;
+}
+
 export default function LoginPage() {
   const { signIn, demoLogin } = useAuth();
   const router = useRouter();
@@ -29,7 +35,7 @@ export default function LoginPage() {
       return;
     }
     toast('Bem-vindo de volta!', 'folha');
-    router.push('/feed');
+    router.push(proximo('/feed'));
   }
 
   return (
@@ -75,7 +81,7 @@ export default function LoginPage() {
           onClick={() => {
             demoLogin('cidadao');
             toast('Demo cidadão ativa', 'folha');
-            router.push('/feed');
+            router.push(proximo('/feed'));
           }}
         >
           Demo cidadão → Feed

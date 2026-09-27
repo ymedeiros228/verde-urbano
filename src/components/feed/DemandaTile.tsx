@@ -16,7 +16,7 @@ export function DemandaTile({ demanda, className }: DemandaTileProps) {
     <Link
       href={`/pontos/${demanda.id}`}
       className={cn(
-        'group flex w-64 shrink-0 gap-3 rounded-2xl border border-folha-muted/25 bg-white p-2.5 shadow-soft transition hover:border-folha/30 hover:bg-sol sm:w-72',
+        'group flex w-64 shrink-0 gap-3 rounded-2xl bg-white p-2.5 ring-1 ring-folha-muted/25 transition duration-300 hover:-translate-y-0.5 hover:ring-folha/30 sm:w-72',
         className
       )}
     >
@@ -36,7 +36,7 @@ export function DemandaTile({ demanda, className }: DemandaTileProps) {
           {demanda.bairro}
         </p>
         <p className="mt-1 text-xs font-semibold text-folha">
-          {demanda.votos.toLocaleString('pt-BR')} apoios
+          {demanda.votos.toLocaleString('pt-BR')} {demanda.votos === 1 ? 'apoio' : 'apoios'}
         </p>
       </div>
     </Link>

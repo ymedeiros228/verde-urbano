@@ -21,6 +21,9 @@ import {
   type TipoPonto,
 } from '@/lib/map/terezina';
 import { cn } from '@/lib/utils/cn';
+import { ArrowRight, Thermometer, Trees } from 'lucide-react';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { useBairrosVerde } from '@/lib/map/verde';
 
 function isTipoPonto(v: string | null): v is TipoPonto {
   return Boolean(v && v in TIPOS_PONTO);
@@ -30,6 +33,13 @@ export default function FeedHome() {
   const { data: demandas = [], isLoading } = useDemandas();
   const { toast } = useToast();
   const { votos: votosExtra, apoiar } = useEngagement();
+  const { perfil } = useAuth();
+  const { data: bairrosVerde = [] } = useBairrosVerde();
+  const meuBairro = perfil?.bairro ?? null;
+  const retrato = useMemo(
+    () => (meuBairro ? bairrosVerde.find((b) => b.bairro === meuBairro) ?? null : null),
+    [bairrosVerde, meuBairro]
+  );
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -102,7 +112,9 @@ export default function FeedHome() {
   }, [enriched]);
 
   const storyItems = useMemo(() => {
-    return BAIRROS_PRIORITARIOS.map((b) => {
+    return BAIRROS_PRIORITARIOS.filter((b) =>
+      enriched.some((d) => d.bairro === b)
+    ).map((b) => {
       const sample = enriched.find((d) => d.bairro === b && d.foto);
       return { id: b, label: b, foto: sample?.foto };
     });
@@ -119,17 +131,10 @@ export default function FeedHome() {
     [enriched]
   );
 
-  const pertoDeVoce = useMemo(() => {
-    if (bairro) {
-      return enriched.filter((d) => d.bairro === bairro).slice(0, 8);
-    }
-    const comConteudo = BAIRROS_PRIORITARIOS.find((b) =>
-      enriched.some((d) => d.bairro === b)
-    );
-    const target = comConteudo || enriched[0]?.bairro;
-    if (!target) return [];
-    return enriched.filter((d) => d.bairro === target).slice(0, 8);
-  }, [enriched, bairro]);
+  const pertoDeVoce = useMemo(
+    () => (meuBairro ? enriched.filter((d) => d.bairro === meuBairro).slice(0, 8) : []),
+    [enriched, meuBairro]
+  );
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -153,13 +158,7 @@ export default function FeedHome() {
     toast('Apoio registrado — obrigado!', 'folha');
   }
 
-  const pertoTitle = bairro
-    ? `Em ${bairro.split(' ')[0]}`
-    : `Perto de você · ${(
-        BAIRROS_PRIORITARIOS.find((b) =>
-          enriched.some((d) => d.bairro === b)
-        ) || BAIRROS_PRIORITARIOS[0]
-      ).split(' ')[0]}`;
+  const pertoTitle = `No seu bairro · ${meuBairro ?? ''}`;
 
   return (
     <div className="mx-auto min-h-[calc(100vh-4rem)] max-w-6xl pb-6">
@@ -167,27 +166,55 @@ export default function FeedHome() {
         className={cn(
           'overflow-hidden px-4 transition-all duration-300 md:px-6 md:pt-8',
           scrolled
-            ? 'max-h-0 py-0 opacity-0 md:max-h-40 md:opacity-100 md:pb-2'
-            : 'max-h-40 py-4 opacity-100'
+            ? 'max-h-0 py-0 opacity-0 md:max-h-48 md:opacity-100 md:pb-2'
+            : 'max-h-48 py-4 opacity-100'
         )}
       >
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-folha-light">
-          App cidadão · Teresina
-        </p>
-        <h1 className="font-display text-3xl font-semibold text-folha md:text-4xl">
-          Verde Urbano
-        </h1>
-        <p className="mt-1 max-w-xl text-sm text-tinta-muted">
-          Pontos do bairro em movimento — apoie e acompanhe até o mutirão.
-        </p>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-folha-light">
+              {perfil?.nome ? `Oi, ${perfil.nome.split(' ')[0]}` : 'Verde Urbano · Teresina'}
+            </p>
+            <h1 className="mt-1 font-display text-3xl font-semibold leading-tight text-tinta md:text-4xl">
+              O que a cidade está pedindo
+            </h1>
+          </div>
+          {retrato && (
+            <Link
+              href={`/mapear?bairro=${encodeURIComponent(retrato.bairro)}`}
+              className="group inline-flex items-center gap-3 rounded-2xl bg-white px-3.5 py-2.5 text-sm ring-1 ring-folha-muted/30 transition hover:ring-folha/40"
+            >
+              <span className="text-xs text-tinta-muted">{retrato.bairro}</span>
+              <span className="inline-flex items-center gap-1 font-semibold tabular-nums text-folha">
+                <Trees className="h-3.5 w-3.5" />
+                {retrato.copa.toLocaleString('pt-BR')}%
+              </span>
+              {retrato.temp != null && (
+                <span className="inline-flex items-center gap-1 font-semibold tabular-nums text-laterita">
+                  <Thermometer className="h-3.5 w-3.5" />
+                  {retrato.temp.toLocaleString('pt-BR')}°
+                </span>
+              )}
+              <ArrowRight className="h-3.5 w-3.5 text-tinta-faint transition group-hover:translate-x-0.5" />
+            </Link>
+          )}
+        </div>
       </div>
 
-      <StoryStrip
-        className="mb-3"
-        items={storyItems}
-        selectedId={bairro}
-        onSelect={selectBairro}
-      />
+      <div
+        className={cn(
+          'overflow-hidden transition-all duration-300',
+          scrolled
+            ? 'max-h-0 mb-0 opacity-0 md:mb-3 md:max-h-28 md:opacity-100'
+            : 'mb-3 max-h-28 opacity-100'
+        )}
+      >
+        <StoryStrip
+          items={storyItems}
+          selectedId={bairro}
+          onSelect={selectBairro}
+        />
+      </div>
 
       <div className="sticky top-0 z-30 border-b border-folha-muted/30 bg-sol/95 px-4 py-3 backdrop-blur md:px-6">
         <SearchField
@@ -308,8 +335,8 @@ export default function FeedHome() {
                   ? 'Ajuste a busca ou limpe os filtros.'
                   : 'Mapeie um novo local na cidade.'
               }
-              actionHref="/pontos/novo"
-              actionLabel="Mapear novo local"
+              actionHref="/mapear"
+              actionLabel="Marcar um ponto no mapa"
             />
             {hasFilters && (
               <div className="flex justify-center">

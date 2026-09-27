@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 export interface StoryItem {
@@ -39,15 +40,15 @@ export function StoryStrip({
         role="option"
         aria-selected={!selectedId}
         onClick={() => onSelect(null)}
-        className="flex w-16 shrink-0 flex-col items-center gap-1.5"
+        className="flex w-[4.5rem] shrink-0 flex-col items-center gap-2 pt-1"
       >
         <span
           className={cn(
-            'flex h-14 w-14 items-center justify-center rounded-full border-2 bg-folha/10 font-display text-sm font-semibold text-folha',
-            !selectedId ? 'border-folha' : 'border-folha-muted/40'
+            'flex h-14 w-14 items-center justify-center rounded-full bg-white text-folha ring-2 ring-offset-2 ring-offset-sol transition',
+            !selectedId ? 'ring-folha' : 'ring-folha-muted/40'
           )}
         >
-          {allLabel.slice(0, 2)}
+          <LayoutGrid className="h-5 w-5" />
         </span>
         <span
           className={cn(
@@ -74,12 +75,12 @@ export function StoryStrip({
             role="option"
             aria-selected={active}
             onClick={() => onSelect(active ? null : item.id)}
-            className="flex w-16 shrink-0 flex-col items-center gap-1.5"
+            className="flex w-[4.5rem] shrink-0 flex-col items-center gap-2 pt-1"
           >
             <span
               className={cn(
-                'relative h-14 w-14 overflow-hidden rounded-full border-2',
-                active ? 'border-folha' : 'border-folha-muted/40'
+                'relative h-14 w-14 overflow-hidden rounded-full ring-2 ring-offset-2 ring-offset-sol transition',
+                active ? 'ring-folha scale-105' : 'ring-folha-muted/40'
               )}
             >
               {item.foto ? (
@@ -98,11 +99,11 @@ export function StoryStrip({
             </span>
             <span
               className={cn(
-                'w-full truncate text-center text-[10px] font-medium',
-                active ? 'text-folha' : 'text-tinta-faint'
+                'line-clamp-2 w-full text-center text-[10.5px] font-medium leading-tight',
+                active ? 'text-folha' : 'text-tinta-muted'
               )}
             >
-              {item.label.split(' ')[0]}
+              {item.label}
             </span>
           </button>
         );

@@ -65,7 +65,7 @@ export function CidadaoTopNav() {
             href="/eu"
             className="text-[11px] font-medium text-tinta-faint transition hover:text-folha"
           >
-            Demo painel
+            Painel gestão
           </Link>
         )}
       </div>

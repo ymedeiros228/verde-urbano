@@ -1,15 +1,20 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import {
   DEMANDAS_MOCK,
   MAPA_PONTOS_MOCK,
   type Demanda,
 } from '@/lib/data/mock';
+import {
+  LOCAL_PONTOS_EVENT,
+  mergeWithLocal,
+} from '@/lib/localPontos';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { createClient } from '@/lib/supabase/client';
 
-function mapRow(row: Record<string, unknown>): Demanda {
+export function mapRow(row: Record<string, unknown>): Demanda {
   return {
     id: String(row.id),
     titulo: String(row.titulo),
@@ -29,54 +34,89 @@ function mapRow(row: Record<string, unknown>): Demanda {
     necessidades: (row.necessidades as string[]) || [],
     ongRecomendado: Boolean(row.ong_recomendado),
     mutiraoData: row.mutirao_data ? String(row.mutirao_data) : undefined,
+    autor: row.autor_nome ? { nome: String(row.autor_nome) } : undefined,
+    criadoEm: row.created_at ? String(row.created_at) : undefined,
   };
 }
 
 async function fetchDemandasFeed(): Promise<Demanda[]> {
+  let base: Demanda[];
   if (!isSupabaseConfigured()) {
-    return DEMANDAS_MOCK.filter((d) => !d.heatOnly);
+    base = DEMANDAS_MOCK.filter((d) => !d.heatOnly);
+  } else {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('pontos')
+        .select('*')
+        .order('urgencia', { ascending: false });
+      if (error || !data?.length) {
+        base = DEMANDAS_MOCK.filter((d) => !d.heatOnly);
+      } else {
+        base = data.map(mapRow);
+      }
+    } catch {
+      base = DEMANDAS_MOCK.filter((d) => !d.heatOnly);
+    }
   }
-  try {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('pontos')
-      .select('*')
-      .order('urgencia', { ascending: false });
-    if (error || !data?.length) return DEMANDAS_MOCK.filter((d) => !d.heatOnly);
-    return data.map(mapRow);
-  } catch {
-    return DEMANDAS_MOCK.filter((d) => !d.heatOnly);
-  }
+  return mergeWithLocal(base).filter((d) => !d.heatOnly);
 }
 
 async function fetchMapaPontos(): Promise<Demanda[]> {
-  if (!isSupabaseConfigured()) return MAPA_PONTOS_MOCK;
-  try {
-    const feed = await fetchDemandasFeed();
-    // densifica com extras locais se o banco ainda for pequeno
-    if (feed.length < 10) {
-      return [...feed, ...MAPA_PONTOS_MOCK.filter((p) => p.heatOnly)];
+  let base: Demanda[];
+  if (!isSupabaseConfigured()) {
+    base = MAPA_PONTOS_MOCK;
+  } else {
+    try {
+      const feed = await fetchDemandasFeed();
+      if (feed.length < 10) {
+        base = [
+          ...feed,
+          ...MAPA_PONTOS_MOCK.filter((p) => p.heatOnly),
+        ];
+      } else {
+        base = feed;
+      }
+    } catch {
+      base = MAPA_PONTOS_MOCK;
     }
-    return feed;
-  } catch {
-    return MAPA_PONTOS_MOCK;
   }
+  return mergeWithLocal(base);
+}
+
+function useInvalidateLocalPontos() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    function onLocal() {
+      void qc.invalidateQueries({ queryKey: ['demandas'] });
+      void qc.invalidateQueries({ queryKey: ['mapa-pontos'] });
+    }
+    window.addEventListener(LOCAL_PONTOS_EVENT, onLocal);
+    window.addEventListener('storage', onLocal);
+    return () => {
+      window.removeEventListener(LOCAL_PONTOS_EVENT, onLocal);
+      window.removeEventListener('storage', onLocal);
+    };
+  }, [qc]);
 }
 
 export function useDemandas() {
+  useInvalidateLocalPontos();
   return useQuery({
     queryKey: ['demandas'],
     queryFn: fetchDemandasFeed,
-    initialData: DEMANDAS_MOCK.filter((d) => !d.heatOnly),
+    // sem localStorage no 1º render (igual ao servidor); o refetch no cliente junta os locais
+    initialData: () => DEMANDAS_MOCK.filter((d) => !d.heatOnly),
     initialDataUpdatedAt: 0,
   });
 }
 
 export function useMapaPontos() {
+  useInvalidateLocalPontos();
   return useQuery({
     queryKey: ['mapa-pontos'],
     queryFn: fetchMapaPontos,
-    initialData: MAPA_PONTOS_MOCK,
+    initialData: () => MAPA_PONTOS_MOCK,
     initialDataUpdatedAt: 0,
   });
 }

@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
+import { EspeciesGaleria } from '@/components/guias/EspeciesGaleria';
 import { ChevronDown, ExternalLink, Phone } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -419,29 +421,45 @@ export default function GuiasPage() {
         <h2 className="font-display text-xl font-semibold text-folha">
           Notícias oficiais
         </h2>
-        <ul className="mt-3 divide-y divide-folha-muted/25 overflow-hidden rounded-2xl border border-folha-muted/30 bg-white">
+        <ul className="mt-3 grid gap-3 sm:grid-cols-2">
           {filtered.noticias.map((n) => (
             <li key={n.id}>
               <a
                 href={n.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-start gap-4 px-4 py-3.5 transition hover:bg-sol/70"
+                className="flex h-full overflow-hidden rounded-2xl border border-folha-muted/30 bg-white shadow-soft transition hover:border-folha/35"
               >
-                <time className="w-20 shrink-0 text-xs font-semibold text-folha">
-                  {format(parseISO(n.data), 'dd MMM', { locale: ptBR })}
-                </time>
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-tinta">{n.titulo}</p>
-                  <p className="mt-0.5 line-clamp-2 text-sm text-tinta-muted">
+                {'foto' in n && n.foto ? (
+                  <span className="relative w-28 shrink-0 self-stretch sm:w-32">
+                    <Image
+                      src={n.foto}
+                      alt=""
+                      fill
+                      sizes="128px"
+                      className="object-cover"
+                    />
+                  </span>
+                ) : null}
+                <span className="flex min-w-0 flex-1 flex-col gap-1 p-3.5">
+                  <time className="text-xs font-semibold text-folha">
+                    {format(parseISO(n.data), 'dd MMM yyyy', { locale: ptBR })}
+                  </time>
+                  <p className="font-medium leading-snug text-tinta">{n.titulo}</p>
+                  <p className="line-clamp-2 text-sm text-tinta-muted">
                     {n.resumo}
                   </p>
-                </div>
-                <ExternalLink className="mt-1 h-4 w-4 shrink-0 text-folha" />
+                  <span className="mt-auto inline-flex items-center gap-1 pt-1 text-xs font-semibold text-folha">
+                    Ler na Prefeitura <ExternalLink className="h-3 w-3" />
+                  </span>
+                </span>
               </a>
             </li>
           ))}
         </ul>
+        <p className="mt-2 text-center text-[11px] text-tinta-faint">
+          Fotos · Prefeitura de Teresina / SEMAM
+        </p>
       </section>
 
       <section id="viveiros" className="vu-enter mt-10 scroll-mt-28">
@@ -471,37 +489,15 @@ export default function GuiasPage() {
 
       <section id="especies" className="vu-enter mt-10 scroll-mt-28">
         <h2 className="font-display text-xl font-semibold text-folha">
-          Espécies em curadoria
+          Árvores nativas para plantar
         </h2>
         <p className="mt-1 text-sm text-tinta-muted">
-          Nativas e adaptadas do Piauí — alinhado à distribuição de mudas.
+          Espécies do Piauí distribuídas nos viveiros municipais. Toque para ver porte, raiz e sombra.
         </p>
-        <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-          {filtered.especies.map((e) => (
-            <li
-              key={e.id}
-              className="overflow-hidden rounded-2xl border border-folha-muted/25 bg-white shadow-soft"
-            >
-              <div
-                className="flex h-16 items-end bg-gradient-to-br from-folha to-rio p-3"
-                aria-hidden
-              >
-                <Badge className="!border-white/30 !bg-white/20 !text-white normal-case">
-                  {e.porte}
-                </Badge>
-              </div>
-              <div className="p-3">
-                <p className="text-sm font-semibold text-tinta">{e.nome}</p>
-                <p className="font-display text-[11px] italic text-tinta-faint">
-                  {e.cientifico}
-                </p>
-                <p className="mt-1.5 text-[10px] uppercase tracking-wide text-folha-light">
-                  raiz {e.raiz} · sombra {e.sombra}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <EspeciesGaleria especies={filtered.especies} />
+        <p className="mt-3 text-center text-[11px] text-tinta-faint">
+          Fotos · Wikimedia Commons (CC)
+        </p>
       </section>
 
       <p className="mt-8 text-center text-xs text-tinta-faint">

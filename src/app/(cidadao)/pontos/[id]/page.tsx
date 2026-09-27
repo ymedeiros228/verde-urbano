@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -21,6 +21,7 @@ import {
   stepIndex,
 } from '@/lib/data/mock';
 import { STATUS_PONTO } from '@/lib/map/terezina';
+import { QuadraRaioX } from '@/components/mapa/QuadraRaioX';
 
 export default function PontoDetalhePage() {
   const params = useParams();
@@ -84,7 +85,17 @@ export default function PontoDetalhePage() {
         <h1 className="font-display text-2xl font-semibold text-folha md:text-3xl">
           {demanda.titulo}
         </h1>
+        {demanda.autor && (
+          <p className="flex items-center gap-2 text-sm text-tinta-muted">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-folha to-rio text-xs font-semibold text-white">
+              {demanda.autor.nome.slice(0, 1).toUpperCase()}
+            </span>
+            Marcado por <span className="font-semibold text-tinta">{demanda.autor.nome}</span>
+          </p>
+        )}
         <p className="leading-relaxed text-tinta">{demanda.descricao}</p>
+
+        <QuadraRaioX demanda={demanda} />
 
         {hasMutirao && (
           <div className="rounded-2xl border border-ipe/40 bg-ipe/15 p-4">
@@ -120,9 +131,10 @@ export default function PontoDetalhePage() {
             ))}
           </div>
         </div>
-        <p className="text-sm font-medium text-laterita">
-          Urgência {demanda.urgencia} · {STATUS_PONTO[demanda.status].label}
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone="laterita">Urgência {demanda.urgencia}</Badge>
+          <Badge tone="muted">{STATUS_PONTO[demanda.status].label}</Badge>
+        </div>
       </div>
 
       {sameBairro.length > 0 && (
@@ -155,7 +167,8 @@ export default function PontoDetalhePage() {
             Apoiar ({votos.toLocaleString('pt-BR')})
           </Button>
           <Link href={`/mapear?ponto=${demanda.id}`} className="flex-1">
-            <Button variant="secondary" className="w-full">
+            <Button variant="outline" className="w-full">
+              <MapPin className="h-4 w-4" />
               Ver no mapa
             </Button>
           </Link>

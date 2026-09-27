@@ -20,7 +20,7 @@ export interface Demanda {
   urgencia: number;
   lng: number;
   lat: number;
-  /** caminho local em /public, ex: /fotos/1.jpg */
+  /** caminho local em /public — só se a foto for daquela ação */
   foto?: string;
   badge?: string;
   badgeTone?: 'folha' | 'ipe' | 'laterita' | 'rio' | 'muted';
@@ -29,6 +29,10 @@ export interface Demanda {
   mutiraoData?: string;
   /** só entra no heatmap — não aparece no feed */
   heatOnly?: boolean;
+  /** Quem marcou o ponto (perfil do cadastro) */
+  autor?: { nome: string; bairro?: string };
+  /** ISO — quando foi marcado */
+  criadoEm?: string;
 }
 
 export interface Mutirao {
@@ -70,42 +74,45 @@ export function stepIndex(step: DemandaStep): number {
   return map[step];
 }
 
-/** Demandas do feed — alinhadas aos bairros do StoryStrip (piloto) */
+/**
+ * Demandas do feed — fotos oficiais só quando o texto descreve a mesma ação
+ * (ver public/fotos/README.txt). Coords: Nominatim/OSM + CEP IBGE (2026).
+ */
 export const DEMANDAS_MOCK: Demanda[] = [
   {
     id: '1',
-    titulo: 'Terreno baldio na Quadra 45',
+    titulo: 'Educação ambiental no Jardim Sensorial',
     descricao:
-      'Lote abandonado com entulho e foco de mosquito. Vizinhos pedem limpeza, cerca provisória e plantio de mudas nativas com a SEMAM.',
-    local: 'Quadra 45 — Dirceu Arcoverde',
-    bairro: 'Dirceu Arcoverde',
-    tipo: 'terreno_baldio',
-    status: 'em_analise',
-    step: 'analise',
+      'Atividade do Núcleo de Educação Ambiental da SEMAM no Parque da Cidade: crianças exploram o Jardim Sensorial e o vínculo com a arborização urbana.',
+    local: 'Jardim Sensorial — Parque da Cidade',
+    bairro: 'Primavera',
+    tipo: 'praca',
+    status: 'aprovado',
+    step: 'votado',
     votos: 1452,
-    urgencia: 88,
-    lng: -42.762,
-    lat: -5.102,
+    urgencia: 55,
+    lng: -42.8106,
+    lat: -5.0571,
     foto: '/fotos/1.jpg',
-    badge: 'Urgente',
-    badgeTone: 'laterita',
+    badge: 'Educação',
+    badgeTone: 'folha',
     ongRecomendado: true,
-    necessidades: ['Limpeza', 'Plantio de mudas', 'Cerca provisória'],
+    necessidades: ['Voluntários', 'Mediação SEMAM', 'Material educativo'],
   },
   {
     id: '2',
-    titulo: 'Plantio na praça do Dirceu',
+    titulo: 'Plantio nas margens do Poty',
     descricao:
-      'Praça com solo exposto e pouca sombra. Mutirão já agendado para completar o plantio e instalar irrigação por gotejo.',
-    local: 'Praça central — Dirceu',
-    bairro: 'Dirceu Arcoverde',
-    tipo: 'praca',
+      'Reflorestamento na zona norte com órgãos públicos e comunidade às margens do Rio Poty. Mutirão para completar mudas e irrigação inicial.',
+    local: 'Margens do Rio Poty — zona norte',
+    bairro: 'Todos os Santos',
+    tipo: 'canteiro',
     status: 'em_mutirao',
     step: 'mutirao',
     votos: 987,
     urgencia: 90,
-    lng: -42.758,
-    lat: -5.098,
+    lng: -42.826,
+    lat: -5.048,
     foto: '/fotos/2.jpg',
     badge: 'Mutirão',
     badgeTone: 'ipe',
@@ -114,220 +121,246 @@ export const DEMANDAS_MOCK: Demanda[] = [
   },
   {
     id: '3',
-    titulo: 'Canteiro na Av. Principal do Parque Piauí',
+    titulo: 'Canteiro revitalizado na Frei Serafim',
     descricao:
-      'Canteiro central seco. Moradores pedem reposição de mudas, adubação e poda leve nas árvores jovens.',
-    local: 'Av. Principal — Parque Piauí',
-    bairro: 'Parque Piauí',
+      'Entrega da SDU Centro no canteiro central da Av. Frei Serafim: mobiliário, calçada e arborização no eixo. Apoie a manutenção das mudas jovens.',
+    local: 'Av. Frei Serafim — eixo central',
+    bairro: 'Centro',
     tipo: 'canteiro',
     status: 'em_analise',
     step: 'analise',
     votos: 654,
     urgencia: 70,
-    lng: -42.786,
-    lat: -5.118,
+    lng: -42.8071,
+    lat: -5.0886,
     foto: '/fotos/3.jpg',
     badge: 'Canteiro',
     badgeTone: 'folha',
-    necessidades: ['Reposição de mudas', 'Adubação', 'Poda leve'],
+    necessidades: ['Manutenção', 'Rega', 'Poda leve'],
   },
   {
     id: '4',
-    titulo: 'Playground sombreado — Parque Piauí',
+    titulo: 'Calçadão sombreado — Frei Serafim',
     descricao:
-      'Área infantil sem cobertura arbórea. Demanda por árvores de médio porte e bancos para responsáveis.',
-    local: 'Área de lazer — Parque Piauí',
-    bairro: 'Parque Piauí',
-    tipo: 'lazer_infantil',
+      'Trecho complementar do eixo Frei Serafim após a revitalização. Foco em sombra contínua e cuidado com as mudas do canteiro central.',
+    local: 'Calçadão Frei Serafim',
+    bairro: 'Centro',
+    tipo: 'canteiro',
     status: 'aprovado',
     step: 'votado',
     votos: 812,
-    urgencia: 75,
-    lng: -42.79,
-    lat: -5.122,
+    urgencia: 65,
+    lng: -42.809,
+    lat: -5.0895,
     foto: '/fotos/4.jpg',
-    badge: 'Lazer',
+    badge: 'Eixo',
     badgeTone: 'rio',
-    necessidades: ['Árvores de sombra', 'Bancos', 'Manutenção'],
+    necessidades: ['Sombra', 'Bancos', 'Manutenção'],
   },
   {
     id: '5',
-    titulo: 'Terreno na Rua das Acácias',
+    titulo: 'Mudas gratuitas — Viveiro da Zona Leste',
     descricao:
-      'Terreno baldio com mato alto. Comunidade quer limpeza SEMAM e plantio coletivo no entorno.',
-    local: 'Rua das Acácias — São Joaquim',
-    bairro: 'São Joaquim',
-    tipo: 'terreno_baldio',
+      'Viveiro municipal em Ininga produz cerca de 4 mil mudas/mês. Retirada com CPF e comprovante de residência, até 5 mudas por pessoa (7h–13h).',
+    local: 'Viveiro Zona Leste — Av. Raul Lopes, Ininga',
+    bairro: 'Ininga',
+    tipo: 'outro',
     status: 'aberto',
     step: 'mapeado',
     votos: 534,
-    urgencia: 82,
-    lng: -42.806,
-    lat: -5.076,
+    urgencia: 48,
+    lng: -42.785,
+    lat: -5.06,
     foto: '/fotos/5.jpg',
-    badge: 'Aberto',
-    badgeTone: 'laterita',
-    necessidades: ['Limpeza', 'Plantio', 'Orientação SEMAM'],
+    badge: 'Mudas',
+    badgeTone: 'folha',
+    necessidades: ['Retirada de mudas', 'Orientação SEMAM', 'Plantio seguro'],
   },
   {
     id: '6',
-    titulo: 'Praça São Joaquim — revitalização',
+    titulo: 'Plantio de mudas — Zona Norte (ETURB)',
     descricao:
-      'Praça com bancos quebrados e canteiros vazios. Apoie a revitalização com mudas nativas do viveiro municipal.',
-    local: 'Praça São Joaquim',
-    bairro: 'São Joaquim',
-    tipo: 'praca',
+      'ETURB e parceiros realizaram plantio de mudas e conscientização ambiental na zona norte. Apoie a manutenção das mudas jovens.',
+    local: 'Ação ETURB — margem Poty, zona norte',
+    bairro: 'Todos os Santos',
+    tipo: 'canteiro',
     status: 'em_mutirao',
     step: 'mutirao',
     votos: 721,
-    urgencia: 68,
-    lng: -42.81,
-    lat: -5.08,
-    foto: '/fotos/1.jpg',
-    badge: 'Mutirão',
+    urgencia: 78,
+    lng: -42.822,
+    lat: -5.052,
+    foto: '/fotos/6.jpg',
+    badge: 'Plantio',
     badgeTone: 'ipe',
-    necessidades: ['Bancos', 'Mudas', 'Voluntários'],
+    necessidades: ['Mudas', 'Irrigação', 'Voluntários'],
     mutiraoData: '19/Out',
   },
   {
     id: '7',
-    titulo: 'Arborização no Promorar',
+    titulo: 'Praça 16 de Agosto revitalizada',
     descricao:
-      'Calçadas sem sombra no trecho comercial. Pedido de mudas de ipê e oiti com orientação do viveiro.',
-    local: 'Trecho comercial — Promorar',
-    bairro: 'Promorar',
-    tipo: 'canteiro',
-    status: 'em_analise',
-    step: 'analise',
-    votos: 445,
-    urgencia: 62,
-    lng: -42.75,
-    lat: -5.096,
-    foto: '/fotos/2.jpg',
-    badge: 'Arborização',
-    badgeTone: 'folha',
-    necessidades: ['Mudas de ipê', 'Irrigação', 'Tutores'],
-  },
-  {
-    id: '8',
-    titulo: 'Lote baldio — Todos os Santos',
-    descricao:
-      'Lote com descarte irregular. Moradores pedem limpeza, fiscalização e plantio de cerca-viva.',
-    local: 'Rua Nova — Todos os Santos',
-    bairro: 'Todos os Santos',
-    tipo: 'terreno_baldio',
-    status: 'aberto',
-    step: 'mapeado',
-    votos: 389,
-    urgencia: 85,
-    lng: -42.824,
-    lat: -5.056,
-    foto: '/fotos/3.jpg',
-    badge: 'Denúncia',
-    badgeTone: 'laterita',
-    necessidades: ['Limpeza', 'Fiscalização', 'Cerca-viva'],
-  },
-  {
-    id: '9',
-    titulo: 'Praça da Vermelha — sombra e bancos',
-    descricao:
-      'Praça usada pela comunidade sem cobertura arbórea suficiente. Prioridade: mudas e manutenção dos bancos.',
-    local: 'Praça da Vermelha',
-    bairro: 'Vermelha',
+      'SDU Leste entregou a Praça 16 de Agosto revitalizada. Apoie a conservação do paisagismo e dos equipamentos.',
+    local: 'Praça 16 de Agosto — São Cristóvão',
+    bairro: 'São Cristóvão',
     tipo: 'praca',
     status: 'aprovado',
     step: 'votado',
-    votos: 1120,
-    urgencia: 66,
-    lng: -42.788,
-    lat: -5.058,
-    foto: '/fotos/4.jpg',
-    badge: 'Prioridade',
+    votos: 890,
+    urgencia: 58,
+    lng: -42.7705,
+    lat: -5.077,
+    foto: '/fotos/7.jpg',
+    badge: 'Praça Viva',
+    badgeTone: 'folha',
+    necessidades: ['Manutenção', 'Rega', 'Poda leve'],
+  },
+  {
+    id: '8',
+    titulo: 'Lixo Zero — Praça Aerolino de Abreu',
+    descricao:
+      'Programa Lixo Zero transformou o cenário de descarte irregular na Praça Aerolino de Abreu. Fiscalização e cuidado contínuos.',
+    local: 'Praça Aerolino de Abreu — Centro',
+    bairro: 'Centro',
+    tipo: 'terreno_baldio',
+    status: 'aberto',
+    step: 'mapeado',
+    votos: 512,
+    urgencia: 84,
+    lng: -42.804,
+    lat: -5.0865,
+    foto: '/fotos/8.jpg',
+    badge: 'Limpeza',
+    badgeTone: 'laterita',
+    necessidades: ['Limpeza', 'Fiscalização', 'Educação ambiental'],
+  },
+  {
+    id: '9',
+    titulo: 'Praça das Palmeiras — melhorias',
+    descricao:
+      'SDU Norte fez vistoria técnica e definiu melhorias para a Praça das Palmeiras. Apoie o acompanhamento das obras.',
+    local: 'Praça das Palmeiras — Buenos Aires',
+    bairro: 'Buenos Aires',
+    tipo: 'praca',
+    status: 'em_analise',
+    step: 'analise',
+    votos: 634,
+    urgencia: 70,
+    lng: -42.772,
+    lat: -5.05,
+    foto: '/fotos/9.jpg',
+    badge: 'Vistoria',
     badgeTone: 'folha',
     ongRecomendado: true,
-    necessidades: ['Mudas', 'Bancos', 'Poda'],
+    necessidades: ['Mudas', 'Bancos', 'Iluminação'],
   },
   {
     id: '10',
-    titulo: 'Espaço infantil na Vermelha',
+    titulo: 'Plantio em calçada — Morada Nova',
     descricao:
-      'Área de lazer infantil pedindo árvores, piso adequado e orientação SEMAM para plantio seguro.',
-    local: 'Área infantil — Vermelha',
-    bairro: 'Vermelha',
-    tipo: 'lazer_infantil',
+      'Paisagismo e plantio em calçada na zona sul, no entorno do mercado. Ação alinhada ao mutirão municipal de arborização.',
+    local: 'Calçada — Morada Nova / Parque Piauí',
+    bairro: 'Parque Piauí',
+    tipo: 'canteiro',
+    status: 'em_mutirao',
+    step: 'mutirao',
+    votos: 298,
+    urgencia: 72,
+    lng: -42.79,
+    lat: -5.118,
+    foto: '/fotos/m3.jpg',
+    badge: 'Plantio',
+    badgeTone: 'ipe',
+    necessidades: ['Mudas', 'Tutores', 'Voluntários'],
+    mutiraoData: '26/Out',
+  },
+  {
+    id: '11',
+    titulo: 'Praça Áurea Brandão — Praça Viva',
+    descricao:
+      'SDU Leste entregou a revitalização da Praça Áurea Brandão pelo Projeto Praça Viva. Ajude a manter o espaço cuidado.',
+    local: 'Praça Áurea Brandão — Planalto Ininga',
+    bairro: 'Ininga',
+    tipo: 'praca',
+    status: 'aprovado',
+    step: 'votado',
+    votos: 478,
+    urgencia: 55,
+    lng: -42.7805,
+    lat: -5.0573,
+    foto: '/fotos/11.jpg',
+    badge: 'Praça Viva',
+    badgeTone: 'folha',
+    necessidades: ['Manutenção', 'Rega', 'Voluntários'],
+  },
+  {
+    id: '12',
+    titulo: 'Obras na Praça do Fripisa',
+    descricao:
+      'Reforma da Praça do Fripisa (Demóstenes Avelino) em andamento. Acompanhe e apoie o espaço.',
+    local: 'Praça Demóstenes Avelino — Fripisa, Centro',
+    bairro: 'Centro',
+    tipo: 'praca',
     status: 'em_analise',
     step: 'analise',
-    votos: 298,
-    urgencia: 58,
-    lng: -42.792,
-    lat: -5.062,
-    foto: '/fotos/5.jpg',
-    badge: 'Lazer',
+    votos: 956,
+    urgencia: 68,
+    lng: -42.8101,
+    lat: -5.0874,
+    foto: '/fotos/12.jpg',
+    badge: 'Obras',
     badgeTone: 'rio',
-    necessidades: ['Árvores', 'Piso', 'Orientação'],
+    necessidades: ['Acompanhamento', 'Acessibilidade', 'Paisagismo'],
+  },
+  {
+    id: '13',
+    titulo: 'Lazer na Praça do Renascença II',
+    descricao:
+      'SEMEL Lazer e Cidadania levou atividades à Praça do Renascença II. Espaço pedindo sombra e manutenção contínua.',
+    local: 'Segunda Praça do Renascença II',
+    bairro: 'Renascença',
+    tipo: 'lazer_infantil',
+    status: 'aberto',
+    step: 'mapeado',
+    votos: 355,
+    urgencia: 64,
+    lng: -42.7408,
+    lat: -5.0977,
+    foto: '/fotos/13.jpg',
+    badge: 'Lazer',
+    badgeTone: 'folha',
+    necessidades: ['Sombra', 'Bancos', 'Manutenção'],
+  },
+  {
+    id: '14',
+    titulo: 'Limpeza urbana — SDU Leste',
+    descricao:
+      'SDU Leste amplia ações de limpeza urbana e ciclos de manutenção nos bairros. Apoie a continuidade e a fiscalização do descarte irregular.',
+    local: 'Ações SDU Leste — Ininga',
+    bairro: 'Ininga',
+    tipo: 'terreno_baldio',
+    status: 'aberto',
+    step: 'mapeado',
+    votos: 241,
+    urgencia: 80,
+    lng: -42.7938,
+    lat: -5.0552,
+    foto: '/fotos/14.jpg',
+    badge: 'Limpeza',
+    badgeTone: 'laterita',
+    necessidades: ['Limpeza', 'Fiscalização', 'Educação ambiental'],
   },
 ];
 
-/** Pontos extras só para densidade do mapa de calor (bairros piloto) */
-const HEAT_CLUSTERS: { bairro: string; lng: number; lat: number; n: number }[] =
-  [
-    { bairro: 'Dirceu Arcoverde', lng: -42.76, lat: -5.1, n: 6 },
-    { bairro: 'Parque Piauí', lng: -42.788, lat: -5.12, n: 5 },
-    { bairro: 'São Joaquim', lng: -42.808, lat: -5.078, n: 4 },
-    { bairro: 'Promorar', lng: -42.748, lat: -5.098, n: 4 },
-    { bairro: 'Todos os Santos', lng: -42.825, lat: -5.058, n: 4 },
-    { bairro: 'Vermelha', lng: -42.79, lat: -5.06, n: 3 },
-  ];
-
-function buildHeatExtra(): Demanda[] {
-  const tipos: TipoPonto[] = [
-    'terreno_baldio',
-    'praca',
-    'canteiro',
-    'lazer_infantil',
-    'outro',
-  ];
-  const out: Demanda[] = [];
-  let i = 0;
-  for (const c of HEAT_CLUSTERS) {
-    for (let k = 0; k < c.n; k++) {
-      i += 1;
-      const urgencia = 40 + ((i * 17) % 55);
-      out.push({
-        id: `h${i}`,
-        titulo: `Ponto calor ${c.bairro} ${k + 1}`,
-        descricao: '',
-        local: c.bairro,
-        bairro: c.bairro,
-        tipo: tipos[i % tipos.length],
-        status: 'aberto',
-        step: 'mapeado',
-        votos: 10 + (i % 40),
-        urgencia,
-        lng: c.lng + (k % 3) * 0.008 - 0.008,
-        lat: c.lat + Math.floor(k / 3) * 0.006 - 0.006,
-        necessidades: [],
-        heatOnly: true,
-      });
-    }
-  }
-  return out;
-}
-
-export const HEAT_EXTRA_MOCK = buildHeatExtra();
-
-/** Todos os pontos para o mapa (feed + densidade) */
-export const MAPA_PONTOS_MOCK: Demanda[] = [
-  ...DEMANDAS_MOCK,
-  ...HEAT_EXTRA_MOCK,
-];
+/** Pins do mapa = só demandas reais da comunidade (o "calor" agora vem de satélite: lib/map/verde.ts) */
+export const MAPA_PONTOS_MOCK: Demanda[] = DEMANDAS_MOCK;
 
 export const MUTIROES_MOCK: Mutirao[] = [
   {
     id: 'm1',
-    titulo: 'Plantio na praça do Dirceu',
-    local: 'Praça central — Dirceu',
-    bairro: 'Dirceu Arcoverde',
+    titulo: 'Plantio nas margens do Poty',
+    local: 'Margens do Rio Poty — zona norte',
+    bairro: 'Todos os Santos',
     data: '2026-10-12',
     horario: '09:00',
     voluntarios: 28,
@@ -339,103 +372,113 @@ export const MUTIROES_MOCK: Mutirao[] = [
   },
   {
     id: 'm2',
-    titulo: 'Revitalização — Praça São Joaquim',
-    local: 'Praça São Joaquim',
-    bairro: 'São Joaquim',
+    titulo: 'Mutirão multi-órgãos — zona norte',
+    local: 'Entorno do Poty — zona norte',
+    bairro: 'Todos os Santos',
     data: '2026-10-19',
     horario: '07:30',
     voluntarios: 42,
     capacidade: 50,
     ong: 'SEMAM, SAADs e parceiros',
     tipo: 'Reflorestamento',
-    demandaId: '6',
+    demandaId: '2',
     foto: '/fotos/m2.jpg',
   },
   {
     id: 'm3',
-    titulo: 'Arborização no Promorar',
-    local: 'Trecho comercial — Promorar',
-    bairro: 'Promorar',
+    titulo: 'Plantio em calçada — Morada Nova',
+    local: 'Calçada — Morada Nova',
+    bairro: 'Parque Piauí',
     data: '2026-10-26',
     horario: '08:00',
     voluntarios: 18,
     capacidade: 30,
     ong: 'Viveiro Municipal / SEMAM',
     tipo: 'Plantio',
-    demandaId: '7',
+    demandaId: '10',
     foto: '/fotos/m3.jpg',
   },
 ];
 
+function sparkAround(n: number): number[] {
+  const base = Math.max(1, n);
+  return [0.55, 0.65, 0.6, 0.78, 0.72, 0.88, 1].map((f) =>
+    Math.round(base * f)
+  );
+}
+
+/** KPIs alinhados ao mock visível no app */
 export const KPI_MOCK = {
-  demandasAtivas: 1250,
-  arvoresPlantadas: 5400,
-  mutiroesAgendados: 8,
-  usuariosApp: 15000,
-  sparkDemandas: [40, 55, 48, 70, 65, 80, 92],
-  sparkArvores: [20, 35, 50, 45, 70, 85, 100],
-  sparkMutiroes: [2, 3, 2, 5, 4, 6, 8],
-  sparkUsuarios: [2, 4, 6, 8, 10, 12, 15],
+  demandasAtivas: DEMANDAS_MOCK.length,
+  arvoresPlantadas: MUTIROES_MOCK.length * 120 + 80,
+  mutiroesAgendados: MUTIROES_MOCK.length,
+  usuariosApp: DEMANDAS_MOCK.reduce((s, d) => s + d.votos, 0),
+  get sparkDemandas() {
+    return sparkAround(this.demandasAtivas);
+  },
+  get sparkArvores() {
+    return sparkAround(this.arvoresPlantadas);
+  },
+  get sparkMutiroes() {
+    return sparkAround(this.mutiroesAgendados);
+  },
+  get sparkUsuarios() {
+    return sparkAround(this.usuariosApp);
+  },
 };
 
-export const TIPOS_DEMANDA_CHART = [
-  { nome: 'Limpeza de terreno', valor: 420 },
-  { nome: 'Arborização', valor: 310 },
-  { nome: 'Playgrounds', valor: 180 },
-  { nome: 'Iluminação', valor: 150 },
-  { nome: 'Bancos/equipamentos', valor: 90 },
-];
-
-export const STATUS_CHART = [
-  { nome: 'Em análise', valor: 320, cor: '#2A6B7C' },
-  { nome: 'Aprovado', valor: 280, cor: '#2D8A58' },
-  { nome: 'Executando', valor: 210, cor: '#E8B84A' },
-  { nome: 'Finalizado', valor: 440, cor: '#1A5C3A' },
-];
-
-export const PRIORIDADES_BAIRRO = [
-  { demanda: 'Limpeza de terreno', score: 4.0 },
-  { demanda: 'Arborização de calçadas', score: 3.7 },
-  { demanda: 'Iluminação LED', score: 3.4 },
-];
-
-export const COBERTURA_GEOJSON = {
-  type: 'FeatureCollection' as const,
-  features: [
-    {
-      type: 'Feature' as const,
-      properties: { nome: 'Parque Poti', cobertura: 0.65 },
-      geometry: {
-        type: 'Polygon' as const,
-        coordinates: [
-          [
-            [-42.82, -5.07],
-            [-42.8, -5.07],
-            [-42.8, -5.09],
-            [-42.82, -5.09],
-            [-42.82, -5.07],
-          ],
-        ],
-      },
-    },
-    {
-      type: 'Feature' as const,
-      properties: { nome: 'Dirceu — núcleo', cobertura: 0.35 },
-      geometry: {
-        type: 'Polygon' as const,
-        coordinates: [
-          [
-            [-42.77, -5.09],
-            [-42.75, -5.09],
-            [-42.75, -5.11],
-            [-42.77, -5.11],
-            [-42.77, -5.09],
-          ],
-        ],
-      },
-    },
-  ],
+const TIPO_CHART_LABEL: Record<string, string> = {
+  terreno_baldio: 'Terreno baldio',
+  praca: 'Praça',
+  canteiro: 'Canteiro',
+  lazer_infantil: 'Lazer infantil',
+  outro: 'Outro',
 };
+
+export const TIPOS_DEMANDA_CHART = (() => {
+  const counts: Record<string, number> = {};
+  for (const d of DEMANDAS_MOCK) {
+    counts[d.tipo] = (counts[d.tipo] || 0) + 1;
+  }
+  return Object.entries(counts).map(([tipo, valor]) => ({
+    nome: TIPO_CHART_LABEL[tipo] || tipo,
+    valor,
+  }));
+})();
+
+const STATUS_CHART_META: Record<string, { nome: string; cor: string }> = {
+  aberto: { nome: 'Aberto', cor: '#B54A2A' },
+  em_analise: { nome: 'Em análise', cor: '#E8B84A' },
+  aprovado: { nome: 'Aprovado', cor: '#2A6B7C' },
+  em_mutirao: { nome: 'Em mutirão', cor: '#2D8A58' },
+  concluido: { nome: 'Concluído', cor: '#1A5C3A' },
+};
+
+export const STATUS_CHART = (() => {
+  const counts: Record<string, number> = {};
+  for (const d of DEMANDAS_MOCK) {
+    counts[d.status] = (counts[d.status] || 0) + 1;
+  }
+  return Object.entries(counts).map(([status, valor]) => ({
+    nome: STATUS_CHART_META[status]?.nome || status,
+    valor,
+    cor: STATUS_CHART_META[status]?.cor || '#4A5C52',
+  }));
+})();
+
+export const PRIORIDADES_BAIRRO = DEMANDAS_MOCK.filter((d) => !d.heatOnly)
+  .slice()
+  .sort(
+    (a, b) =>
+      b.urgencia / 100 +
+      b.votos / 5000 -
+      (a.urgencia / 100 + a.votos / 5000)
+  )
+  .slice(0, 3)
+  .map((d) => ({
+    demanda: d.titulo.length > 28 ? `${d.titulo.slice(0, 26)}…` : d.titulo,
+    score: Math.round((d.urgencia / 25 + d.votos / 400) * 10) / 10,
+  }));
 
 export const GUIAS_MOCK = [
   {

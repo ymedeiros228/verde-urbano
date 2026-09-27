@@ -123,7 +123,7 @@ export const ORIENTACOES_ORGAOS = [
   },
 ] as const;
 
-/** Notícias oficiais da Prefeitura — URLs diretas quando disponíveis */
+/** Notícias oficiais — foto local só da mesma matéria (public/fotos/README.txt) */
 export const NOTICIAS_SEMAM = [
   {
     id: 'enau-mirim-2026',
@@ -135,6 +135,7 @@ export const NOTICIAS_SEMAM = [
     fonte: 'Prefeitura de Teresina / SEMAM',
     url: 'https://www.teresina.pi.gov.br/educacao-ambiental-aproxima-criancas-da-arborizacao-durante-o-enau-mirim-em-teresina/',
     tags: ['educação ambiental', 'ENAU', 'crianças'],
+    foto: '/fotos/1.jpg',
   },
   {
     id: 'nucleo-parque-cidade',
@@ -145,6 +146,7 @@ export const NOTICIAS_SEMAM = [
     fonte: 'Prefeitura de Teresina / SEMAM',
     url: 'https://www.teresina.pi.gov.br/criancas-vivenciam-a-natureza-pelos-sentidos-em-atividade-do-nucleo-de-educacao-ambiental-no-parque-da-cidade/',
     tags: ['Parque da Cidade', 'educação ambiental'],
+    foto: '/fotos/1.jpg',
   },
   {
     id: 'viveiro-leste-2026',
@@ -155,6 +157,7 @@ export const NOTICIAS_SEMAM = [
     fonte: 'Prefeitura de Teresina / SDU Leste',
     url: 'https://www.teresina.pi.gov.br/viveiro-de-plantas-da-zona-leste-de-teresina-disponibiliza-mudas-gratuitas-para-a-populacao/',
     tags: ['viveiro', 'mudas', 'Ininga'],
+    foto: '/fotos/5.jpg',
   },
   {
     id: 'plantio-eturb-2026',
@@ -165,6 +168,7 @@ export const NOTICIAS_SEMAM = [
     fonte: 'Prefeitura de Teresina',
     url: 'https://www.teresina.pi.gov.br/eturb-e-parceiros-realizam-plantio-de-mudas-e-conscientizacao-ambiental-na-zona-norte-da-capital/',
     tags: ['plantio', 'zona norte'],
+    foto: '/fotos/2.jpg',
   },
   {
     id: 'reflorestamento-poty-2026',
@@ -175,6 +179,7 @@ export const NOTICIAS_SEMAM = [
     fonte: 'Prefeitura de Teresina',
     url: 'https://www.teresina.pi.gov.br/reflorestamento-na-zona-norte-une-orgaos-publicos-e-beneficia-comunidade-as-margens-do-rio-poty/',
     tags: ['reflorestamento', 'Poty'],
+    foto: '/fotos/2.jpg',
   },
   {
     id: 'frei-serafim-2026',
@@ -185,6 +190,7 @@ export const NOTICIAS_SEMAM = [
     fonte: 'Prefeitura de Teresina / SDU Centro',
     url: 'https://www.teresina.pi.gov.br/sdu-centro-entrega-revitalizacao-do-canteiro-central-da-avenida-frei-serafim/',
     tags: ['Frei Serafim', 'canteiro', 'revitalização'],
+    foto: '/fotos/3.jpg',
   },
 ] as const;
 

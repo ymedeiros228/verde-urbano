@@ -24,7 +24,7 @@ export function BottomNav() {
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'relative flex h-full flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold transition',
-                  active ? 'text-folha' : 'text-tinta-faint hover:text-folha'
+                  active ? 'text-folha' : 'text-tinta-muted hover:text-folha'
                 )}
               >
                 <span

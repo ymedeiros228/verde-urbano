@@ -30,20 +30,20 @@ export default function GestaoRelatoriosPage() {
           </h3>
           <ul className="mt-3 space-y-1.5 text-sm text-tinta">
             <li>
-              Demandas ativas:{' '}
+              Demandas no piloto:{' '}
               <strong>{KPI_MOCK.demandasAtivas.toLocaleString('pt-BR')}</strong>
             </li>
             <li>
               Pontos no mapa: <strong>{pontos.length}</strong>
             </li>
             <li>
-              Árvores 2024:{' '}
+              Mudas (mutirões):{' '}
               <strong>
                 {KPI_MOCK.arvoresPlantadas.toLocaleString('pt-BR')}
               </strong>
             </li>
             <li>
-              Usuários app:{' '}
+              Apoios no feed:{' '}
               <strong>{KPI_MOCK.usuariosApp.toLocaleString('pt-BR')}</strong>
             </li>
           </ul>
@@ -97,8 +97,8 @@ export default function GestaoRelatoriosPage() {
           Verde Urbano — Relatório de extensão
         </h2>
         <p className="mt-2 text-sm">
-          Demandas ativas: {KPI_MOCK.demandasAtivas} · Pontos: {pontos.length} ·
-          Mutirões: {KPI_MOCK.mutiroesAgendados} · Usuários:{' '}
+          Demandas no piloto: {KPI_MOCK.demandasAtivas} · Pontos: {pontos.length}{' '}
+          · Mutirões: {KPI_MOCK.mutiroesAgendados} · Apoios:{' '}
           {KPI_MOCK.usuariosApp}
         </p>
       </div>

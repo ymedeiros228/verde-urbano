@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useMemo, useEffect } from 'react';
+import { Suspense, useMemo, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -8,8 +8,10 @@ import {
   Leaf,
   LayoutDashboard,
   MapPin,
+  Pencil,
   Users,
 } from 'lucide-react';
+import { useBairrosVerde } from '@/lib/map/verde';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/Button';
@@ -45,7 +47,11 @@ export default function EuPage() {
 }
 
 function EuPageInner() {
-  const { user, role, loading, signOut, demoLogin } = useAuth();
+  const { user, role, perfil, loading, signOut, demoLogin, updatePerfil } = useAuth();
+  const { data: bairros = [] } = useBairrosVerde();
+  const [editando, setEditando] = useState(false);
+  const [nomeEd, setNomeEd] = useState('');
+  const [bairroEd, setBairroEd] = useState('');
   const { data: demandas = [] } = useDemandas();
   const { data: mutiroes = [] } = useMutiroes();
   const { apoiosIds, mutiroesIds, extra } = useEngagement();
@@ -60,7 +66,29 @@ function EuPageInner() {
   }, [searchParams, toast, router]);
 
   const displayName =
-    user?.email?.split('@')[0]?.replace(/\./g, ' ') || 'Visitante';
+    perfil?.nome || user?.email?.split('@')[0]?.replace(/\./g, ' ') || 'Visitante';
+
+  const meusPontos = useMemo(
+    () =>
+      demandas.filter(
+        (d) => d.id.startsWith('local-') || (perfil?.nome && d.autor?.nome === perfil.nome)
+      ),
+    [demandas, perfil]
+  );
+
+  function abrirEdicao() {
+    setNomeEd(perfil?.nome ?? displayName);
+    setBairroEd(perfil?.bairro ?? '');
+    setEditando(true);
+  }
+
+  async function salvarPerfil(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nomeEd.trim()) return;
+    await updatePerfil({ nome: nomeEd.trim(), bairro: bairroEd.trim() || undefined });
+    setEditando(false);
+    toast('Perfil atualizado', 'folha');
+  }
 
   const apoios = useMemo(() => {
     return apoiosIds
@@ -90,7 +118,7 @@ function EuPageInner() {
           Eu
         </h1>
         <p className="mt-1 text-sm text-tinta-muted">
-          Seus apoios e mutirões neste aparelho — continue de onde parou.
+          Seu perfil assina os pontos que você marca no mapa.
         </p>
       </div>
 
@@ -99,18 +127,73 @@ function EuPageInner() {
           <p className="text-sm text-tinta-muted">Carregando sessão…</p>
         ) : user ? (
           <>
-            <ProfileHeader
-              name={displayName}
-              email={user.email}
-              roleLabel={ROLE_LABEL[role || 'cidadao']}
-            />
-            <Button
-              variant="secondary"
-              className="mt-5 w-full"
-              onClick={() => signOut()}
-            >
-              Sair
-            </Button>
+            <div className="flex items-start justify-between gap-3">
+              <ProfileHeader
+                name={displayName}
+                email={perfil?.bairro ? `Mora em ${perfil.bairro}` : user.email}
+                roleLabel={ROLE_LABEL[role || 'cidadao']}
+              />
+              {!editando && (
+                <button
+                  type="button"
+                  onClick={abrirEdicao}
+                  className="shrink-0 rounded-xl p-2 text-tinta-faint transition hover:bg-sol hover:text-folha"
+                  aria-label="Editar perfil"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {editando ? (
+              <form onSubmit={salvarPerfil} className="vu-fade-in mt-5 space-y-2">
+                <input
+                  value={nomeEd}
+                  onChange={(e) => setNomeEd(e.target.value)}
+                  placeholder="Seu nome"
+                  required
+                  className="h-11 w-full rounded-xl bg-sol px-3.5 text-sm outline-none ring-1 ring-inset ring-folha-muted/30 focus:bg-white focus:ring-folha/40"
+                />
+                <input
+                  value={bairroEd}
+                  onChange={(e) => setBairroEd(e.target.value)}
+                  placeholder="Seu bairro"
+                  list="bairros-eu"
+                  className="h-11 w-full rounded-xl bg-sol px-3.5 text-sm outline-none ring-1 ring-inset ring-folha-muted/30 focus:bg-white focus:ring-folha/40"
+                />
+                <datalist id="bairros-eu">
+                  {bairros.map((b) => (
+                    <option key={b.bairro} value={b.bairro} />
+                  ))}
+                </datalist>
+                <div className="flex gap-2 pt-1">
+                  <Button type="button" variant="secondary" className="flex-1" onClick={() => setEditando(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="flex-1">
+                    Salvar
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <dl className="mt-5 grid grid-cols-3 divide-x divide-folha-muted/25 rounded-2xl bg-sol py-3 text-center">
+                  {[
+                    { n: meusPontos.length, l: 'pontos' },
+                    { n: apoiosIds.length, l: 'apoios' },
+                    { n: mutiroesIds.length, l: 'mutirões' },
+                  ].map(({ n, l }) => (
+                    <div key={l}>
+                      <dd className="font-display text-2xl font-semibold tabular-nums text-folha">{n}</dd>
+                      <dt className="text-[11px] text-tinta-muted">{l}</dt>
+                    </div>
+                  ))}
+                </dl>
+                <Button variant="ghost" className="mt-3 w-full" onClick={() => signOut()}>
+                  Sair
+                </Button>
+              </>
+            )}
           </>
         ) : (
           <>
@@ -138,6 +221,36 @@ function EuPageInner() {
           </>
         )}
       </div>
+
+      {user && (
+        <section className="mt-8">
+          <div className="flex items-end justify-between">
+            <h2 className="font-display text-lg font-semibold text-folha">Meus pontos no mapa</h2>
+            <Link href="/mapear" className="text-xs font-semibold text-folha hover:underline">
+              Marcar novo
+            </Link>
+          </div>
+          {meusPontos.length === 0 ? (
+            <EmptyState
+              className="mt-3"
+              title="Você ainda não marcou nenhum ponto"
+              description="No mapa, toque em “Marcar ponto”, posicione o pino e tire a foto do local."
+              actionHref="/mapear"
+              actionLabel="Abrir o mapa"
+            />
+          ) : (
+            <div className="mt-3 -mx-4 md:-mx-6">
+              <FeedRail>
+                {meusPontos.map((d) => (
+                  <div key={d.id} className="snap-start">
+                    <DemandaTile demanda={{ ...d, votos: d.votos + extra(d.id) }} />
+                  </div>
+                ))}
+              </FeedRail>
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="mt-8">
         <h2 className="px-0 font-display text-lg font-semibold text-folha">

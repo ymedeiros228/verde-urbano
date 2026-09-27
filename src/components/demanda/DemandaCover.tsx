@@ -1,48 +1,41 @@
 'use client';
 
 import Image from 'next/image';
-import {
-  TreePine,
-  Square,
-  Shovel,
-  Flower2,
-  MapPin,
-  Users,
-  type LucideIcon,
-} from 'lucide-react';
+import { Users, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import type { TipoPonto } from '@/lib/map/terezina';
+import { TIPO_ICON } from '@/lib/map/tipoIcons';
 
 const TIPO_COVER: Record<
   TipoPonto,
   { Icon: LucideIcon; from: string; to: string; accent: string }
 > = {
   terreno_baldio: {
-    Icon: Square,
+    Icon: TIPO_ICON.terreno_baldio,
     from: '#8B3A22',
     to: '#C45C3A',
     accent: '#F5D98A',
   },
   praca: {
-    Icon: TreePine,
+    Icon: TIPO_ICON.praca,
     from: '#0F3D28',
     to: '#1A5C3A',
     accent: '#A8C9B5',
   },
   canteiro: {
-    Icon: Shovel,
+    Icon: TIPO_ICON.canteiro,
     from: '#B8922E',
     to: '#E8B84A',
     accent: '#1C2B22',
   },
   lazer_infantil: {
-    Icon: Flower2,
+    Icon: TIPO_ICON.lazer_infantil,
     from: '#1A4A56',
     to: '#2A6B7C',
     accent: '#F5D98A',
   },
   outro: {
-    Icon: MapPin,
+    Icon: TIPO_ICON.outro,
     from: '#2A3D34',
     to: '#4A5C52',
     accent: '#A8C9B5',
@@ -175,6 +168,7 @@ export function DemandaCover({
             src={foto}
             alt={`${local} — ${bairro}`}
             fill
+            unoptimized={!foto.startsWith('/')}
             className="object-cover transition duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
             sizes={compact ? '120px' : '(max-width: 768px) 100vw, 50vw'}
             priority={false}

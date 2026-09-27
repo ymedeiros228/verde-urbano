@@ -11,6 +11,7 @@ export function Chip({
   return (
     <button
       type="button"
+      aria-pressed={active ?? false}
       className={cn(
         'shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition',
         active

@@ -2,26 +2,43 @@ import type { LngLatBoundsLike, LngLatLike } from 'maplibre-gl';
 
 /** Bounding box aproximado de Teresina/PI */
 export const TERESINA_BOUNDS: LngLatBoundsLike = [
-  [-42.95, -5.25], // SW
-  [-42.7, -4.95], // NE
+  [-43.0, -5.3], // SW
+  [-42.6, -4.88], // NE
 ];
 
 /** Centro urbano (Praça da Bandeira / região central) */
-export const TERESINA_CENTER: LngLatLike = [-42.8019, -5.0892];
+export const TERESINA_CENTER: LngLatLike = [-42.775, -5.085];
 
-export const DEFAULT_ZOOM = 12;
+export const DEFAULT_ZOOM = 11.6;
 export const MIN_ZOOM = 10;
 export const MAX_ZOOM = 18;
 
-/** Bairros prioritários para o piloto (IBGE + contexto local) */
+/** Bairros do piloto com demanda no feed (coords reais OSM) */
 export const BAIRROS_PRIORITARIOS = [
-  'Dirceu Arcoverde',
-  'Parque Piauí',
-  'São Joaquim',
-  'Promorar',
   'Todos os Santos',
-  'Vermelha',
+  'Parque Piauí',
+  'Centro',
+  'Ininga',
+  'São Cristóvão',
+  'Buenos Aires',
+  'Primavera',
+  'Renascença',
 ] as const;
+
+/** Centros aproximados p/ flyTo no mapa cidadão */
+export const BAIRRO_CENTERS: Record<
+  (typeof BAIRROS_PRIORITARIOS)[number],
+  [number, number]
+> = {
+  'Todos os Santos': [-42.825, -5.05],
+  'Parque Piauí': [-42.79, -5.118],
+  Centro: [-42.808, -5.088],
+  Ininga: [-42.794, -5.055],
+  'São Cristóvão': [-42.771, -5.077],
+  'Buenos Aires': [-42.772, -5.05],
+  Primavera: [-42.811, -5.057],
+  Renascença: [-42.741, -5.098],
+};
 
 export type PorteArvore = 'pequeno' | 'medio' | 'grande';
 export type TipoRaiz = 'pivotante' | 'superficial' | 'mista';
@@ -34,11 +51,14 @@ export interface EspecieNativa {
   raiz: TipoRaiz;
   sombra: 'baixa' | 'media' | 'alta';
   observacao?: string;
+  /** Foto local em /public/especies */
+  foto?: string;
 }
 
 /**
  * Espécies iniciais — validar com a ONG na Rodada 8.
  * Inclui nativas/adaptadas comuns em arborização urbana no Piauí.
+ * Fotos: Wikimedia Commons (CC) — ver crédito em /guias#especies.
  */
 export const ESPECIES_NATIVAS_PIAUI: EspecieNativa[] = [
   {
@@ -49,6 +69,7 @@ export const ESPECIES_NATIVAS_PIAUI: EspecieNativa[] = [
     raiz: 'pivotante',
     sombra: 'media',
     observacao: 'Floração marcante; evitar sob fiação baixa.',
+    foto: '/especies/ipe-amarelo.jpg',
   },
   {
     id: 'oiti',
@@ -58,6 +79,7 @@ export const ESPECIES_NATIVAS_PIAUI: EspecieNativa[] = [
     raiz: 'superficial',
     sombra: 'alta',
     observacao: 'Boa sombra; atenção a calçadas estreitas.',
+    foto: '/especies/oiti.jpg',
   },
   {
     id: 'pau-ferro',
@@ -66,6 +88,7 @@ export const ESPECIES_NATIVAS_PIAUI: EspecieNativa[] = [
     porte: 'medio',
     raiz: 'pivotante',
     sombra: 'media',
+    foto: '/especies/pau-ferro.jpg',
   },
   {
     id: 'sibipiruna',
@@ -74,6 +97,7 @@ export const ESPECIES_NATIVAS_PIAUI: EspecieNativa[] = [
     porte: 'grande',
     raiz: 'pivotante',
     sombra: 'alta',
+    foto: '/especies/sibipiruna.jpg',
   },
   {
     id: 'ipe-roxo',
@@ -82,6 +106,7 @@ export const ESPECIES_NATIVAS_PIAUI: EspecieNativa[] = [
     porte: 'medio',
     raiz: 'pivotante',
     sombra: 'media',
+    foto: '/especies/ipe-roxo.jpg',
   },
   {
     id: 'acaricuara',
@@ -91,6 +116,7 @@ export const ESPECIES_NATIVAS_PIAUI: EspecieNativa[] = [
     raiz: 'mista',
     sombra: 'media',
     observacao: 'Atrai polinizadores; podas periódicas.',
+    foto: '/especies/acaricuara.jpg',
   },
   {
     id: 'caneleiro',
@@ -101,6 +127,7 @@ export const ESPECIES_NATIVAS_PIAUI: EspecieNativa[] = [
     sombra: 'media',
     observacao:
       'Nativa citada na distribuição de mudas dos viveiros municipais (SEMAM).',
+    foto: '/especies/caneleiro.jpg',
   },
   {
     id: 'sambaiba',
@@ -110,6 +137,7 @@ export const ESPECIES_NATIVAS_PIAUI: EspecieNativa[] = [
     raiz: 'mista',
     sombra: 'media',
     observacao: 'Espécie nativa citada nos viveiros municipais de Teresina.',
+    foto: '/especies/sambaiba.jpg',
   },
 ];
 
@@ -134,8 +162,9 @@ export const TIPOS_PONTO: Record<
   terreno_baldio: { label: 'Terreno baldio', color: '#B54A2A' },
   praca: { label: 'Praça', color: '#1A5C3A' },
   canteiro: { label: 'Canteiro', color: '#2D8A58' },
-  lazer_infantil: { label: 'Lazer infantil', color: '#E8B84A' },
-  outro: { label: 'Outro', color: '#2A6B7C' },
+  /** Rio — amarelo ipê sumia com ícone branco no mapa */
+  lazer_infantil: { label: 'Lazer infantil', color: '#2A6B7C' },
+  outro: { label: 'Outro', color: '#4A5C52' },
 };
 
 export const STATUS_PONTO: Record<
@@ -205,3 +234,33 @@ export const PONTOS_MOCK = [
 
 export const OPENFREEMAP_STYLE =
   'https://tiles.openfreemap.org/styles/liberty';
+
+/** Base clara e limpa — deixa os dados (hexágonos, parques) serem o destaque */
+export const POSITRON_STYLE =
+  'https://tiles.openfreemap.org/styles/positron';
+
+/** Visão de satélite (como SIGAPS “de cima”) — Esri World Imagery */
+export const SATELLITE_STYLE = {
+  version: 8 as const,
+  name: 'vu-satellite',
+  glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
+  sources: {
+    'esri-world-imagery': {
+      type: 'raster' as const,
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      ],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution:
+        'Tiles © Esri — Esri, Maxar, Earthstar Geographics',
+    },
+  },
+  layers: [
+    {
+      id: 'esri-world-imagery',
+      type: 'raster' as const,
+      source: 'esri-world-imagery',
+    },
+  ],
+};

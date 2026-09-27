@@ -11,27 +11,44 @@ import { Button } from '@/components/ui/Button';
 import { DemandaCover } from '@/components/demanda/DemandaCover';
 import { DemandaSheet } from '@/components/demanda/DemandaSheet';
 import { useEngagement } from '@/hooks/useEngagement';
+import { useToast } from '@/components/ui/Toast';
 import {
   STATUS_PONTO,
   TIPOS_PONTO,
   type StatusPonto,
 } from '@/lib/map/terezina';
-import type { Demanda } from '@/lib/data/mock';
+import type { DemandaStep } from '@/lib/data/mock';
 
 type SortKey = 'urgencia' | 'votos' | 'titulo';
+
+type TriagemPatch = { status: StatusPonto; step: DemandaStep };
+
+const TRIAGEM: Record<'aprovar' | 'mutirao' | 'concluir', TriagemPatch> = {
+  aprovar: { status: 'aprovado', step: 'votado' },
+  mutirao: { status: 'em_mutirao', step: 'mutirao' },
+  concluir: { status: 'concluido', step: 'concluido' },
+};
 
 export default function GestaoDemandasPage() {
   const { data: demandas = [], isLoading } = useDemandas();
   const { extra } = useEngagement();
+  const { toast } = useToast();
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<StatusPonto | null>(null);
   const [sort, setSort] = useState<SortKey>('urgencia');
-  const [selected, setSelected] = useState<Demanda | null>(null);
-
-  const base = useMemo(
-    () => demandas.filter((d) => !d.heatOnly),
-    [demandas]
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [overrides, setOverrides] = useState<Record<string, TriagemPatch>>(
+    {}
   );
+
+  const base = useMemo(() => {
+    return demandas
+      .filter((d) => !d.heatOnly)
+      .map((d) => {
+        const patch = overrides[d.id];
+        return patch ? { ...d, ...patch } : d;
+      });
+  }, [demandas, overrides]);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -52,12 +69,24 @@ export default function GestaoDemandasPage() {
     return list;
   }, [base, q, status, sort, extra]);
 
+  const selected = useMemo(
+    () => (selectedId ? base.find((d) => d.id === selectedId) || null : null),
+    [base, selectedId]
+  );
+
   const statuses = Object.keys(STATUS_PONTO) as StatusPonto[];
   const hasFilters = Boolean(q.trim() || status);
 
   function clearFilters() {
     setQ('');
     setStatus(null);
+  }
+
+  function onTriagem(action: 'aprovar' | 'mutirao' | 'concluir') {
+    if (!selectedId) return;
+    const patch = TRIAGEM[action];
+    setOverrides((prev) => ({ ...prev, [selectedId]: patch }));
+    toast(`Status → ${STATUS_PONTO[patch.status].label} (demo)`, 'folha');
   }
 
   const selectedVotos = selected
@@ -68,7 +97,7 @@ export default function GestaoDemandasPage() {
     <div className="space-y-4">
       <PageHeader
         title="Demandas cidadãs"
-        description="Priorize por urgência e apoios. Clique na linha para detalhe."
+        description="Priorize por urgência e apoios. Clique na linha para triagem demo."
       />
 
       <div className="sticky top-0 z-20 -mx-1 space-y-2 rounded-2xl border border-folha-muted/30 bg-sol/95 p-3 backdrop-blur sm:mx-0">
@@ -156,7 +185,7 @@ export default function GestaoDemandasPage() {
                   <tr
                     key={d.id}
                     className="cursor-pointer border-t border-folha-muted/20 transition hover:bg-sol/80"
-                    onClick={() => setSelected(d)}
+                    onClick={() => setSelectedId(d.id)}
                   >
                     <td className="px-3 py-2 sm:px-4">
                       <DemandaCover
@@ -197,9 +226,11 @@ export default function GestaoDemandasPage() {
       <DemandaSheet
         demanda={selected}
         open={Boolean(selected)}
-        onClose={() => setSelected(null)}
+        onClose={() => setSelectedId(null)}
         votos={selectedVotos}
         showApoiar={false}
+        showTriagem
+        onTriagem={onTriagem}
       />
     </div>
   );

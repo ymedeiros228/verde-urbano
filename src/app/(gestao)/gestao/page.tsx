@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   BarChart,
   Bar,
@@ -16,6 +17,7 @@ import { Mapa } from '@/components/mapa/Mapa';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { MutiraoCover } from '@/components/demanda/DemandaCover';
+import { useCountUp } from '@/lib/useCountUp';
 import { useMapaPontos } from '@/hooks/useDemandas';
 import { useMutiroes } from '@/hooks/useMutiroes';
 import {
@@ -58,17 +60,16 @@ const tooltipStyle = {
 
 const kpis = [
   {
-    label: 'Demandas ativas',
+    label: 'Demandas no piloto',
     value: KPI_MOCK.demandasAtivas,
     spark: KPI_MOCK.sparkDemandas,
     color: '#1A5C3A',
   },
   {
-    label: 'Árvores 2024',
+    label: 'Mudas (mutirões)',
     value: KPI_MOCK.arvoresPlantadas,
     spark: KPI_MOCK.sparkArvores,
     color: '#2D8A58',
-    suffix: ' mudas',
   },
   {
     label: 'Mutirões',
@@ -77,12 +78,46 @@ const kpis = [
     color: '#E8B84A',
   },
   {
-    label: 'Usuários app',
+    label: 'Apoios no feed',
     value: KPI_MOCK.usuariosApp,
     spark: KPI_MOCK.sparkUsuarios,
     color: '#2A6B7C',
   },
 ];
+
+function KpiCard({
+  label,
+  value,
+  spark,
+  color,
+  suffix,
+}: {
+  label: string;
+  value: number;
+  spark: number[];
+  color: string;
+  suffix?: string;
+}) {
+  const animated = useCountUp(value, 1400);
+  return (
+    <div className="flex items-end justify-between rounded-2xl border border-folha-muted/30 bg-white px-4 py-4 shadow-soft">
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-tinta-faint">
+          {label}
+        </p>
+        <p className="mt-1 font-display text-3xl font-semibold text-folha">
+          {animated.toLocaleString('pt-BR')}
+          {suffix ? (
+            <span className="text-base font-medium text-tinta-muted">
+              {suffix}
+            </span>
+          ) : null}
+        </p>
+      </div>
+      <Sparkline values={spark} color={color} />
+    </div>
+  );
+}
 
 export default function GestaoDashboardPage() {
   const { data: mapaPontos = [] } = useMapaPontos();
@@ -99,25 +134,13 @@ export default function GestaoDashboardPage() {
 
       <div className="vu-enter grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((k) => (
-          <div
+          <KpiCard
             key={k.label}
-            className="flex items-end justify-between rounded-2xl border border-folha-muted/30 bg-white px-4 py-4 shadow-soft"
-          >
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-tinta-faint">
-                {k.label}
-              </p>
-              <p className="mt-1 font-display text-3xl font-semibold text-folha">
-                {k.value.toLocaleString('pt-BR')}
-                {k.suffix ? (
-                  <span className="text-base font-medium text-tinta-muted">
-                    {k.suffix}
-                  </span>
-                ) : null}
-              </p>
-            </div>
-            <Sparkline values={k.spark} color={k.color} />
-          </div>
+            label={k.label}
+            value={k.value}
+            spark={k.spark}
+            color={k.color}
+          />
         ))}
       </div>
 
@@ -125,19 +148,19 @@ export default function GestaoDashboardPage() {
         <div className="overflow-hidden rounded-2xl border border-folha-muted/30 bg-white shadow-soft xl:col-span-2">
           <div className="border-b border-folha-muted/25 px-4 py-3">
             <h2 className="font-display text-lg font-semibold text-folha">
-              Mapa de calor · demandas
+              Prioridade de arborização
             </h2>
             <p className="text-xs text-tinta-muted">
-              {SEMAM.sigla} · cobertura e urgência
+              Copa (ESA WorldCover) × temperatura de superfície (Landsat) · pedidos da comunidade
             </p>
           </div>
           <div className="h-[360px] p-3">
             <Mapa
               className="h-full w-full rounded-xl"
               pontos={mapaPontos}
-              heatmapIntensity={1.5}
-              heatmapRadius={34}
-              layers={{ demandas: true, heatmap: true, cobertura: true }}
+              lente="prioridade"
+              showAreas={false}
+              quiet
               showControls
             />
           </div>
@@ -173,7 +196,7 @@ export default function GestaoDashboardPage() {
             <h2 className="font-display text-base font-semibold text-folha">
               Status
             </h2>
-            <div className="mt-2 h-44">
+            <div className="mt-2 h-40">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -192,6 +215,21 @@ export default function GestaoDashboardPage() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
+            <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-1.5">
+              {STATUS_CHART.map((s) => (
+                <li
+                  key={s.nome}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-medium text-tinta-muted"
+                >
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ background: s.cor }}
+                    aria-hidden
+                  />
+                  {s.nome}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
@@ -287,12 +325,25 @@ export default function GestaoDashboardPage() {
                 Curadoria
               </Link>
             </div>
-            <ul className="mt-3 space-y-2 text-sm">
+            <ul className="mt-3 space-y-2.5 text-sm">
               {ESPECIES_NATIVAS_PIAUI.slice(0, 4).map((e) => (
-                <li key={e.id}>
-                  <span className="font-medium text-tinta">{e.nome}</span>
-                  <span className="block font-display text-xs italic text-tinta-faint">
-                    {e.cientifico}
+                <li key={e.id} className="flex items-center gap-2.5">
+                  <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-folha to-rio">
+                    {e.foto ? (
+                      <Image
+                        src={e.foto}
+                        alt=""
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                      />
+                    ) : null}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="font-medium text-tinta">{e.nome}</span>
+                    <span className="block truncate font-display text-xs italic text-tinta-faint">
+                      {e.cientifico}
+                    </span>
                   </span>
                 </li>
               ))}

@@ -24,7 +24,7 @@ export function FeedRail({ title, children, className, action }: FeedRailProps) 
           {action}
         </div>
       )}
-      <div className="flex gap-3 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory md:px-6 [&::-webkit-scrollbar]:hidden">
+      <div className="flex gap-3 overflow-x-auto px-4 py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory md:px-6 [&::-webkit-scrollbar]:hidden">
         {children}
       </div>
     </section>
